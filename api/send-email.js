@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
             // UPDATED: Using the provided verified domain.
             // IMPORTANT: Replace 'your_email' with an actual email address
             // that you have verified with Resend under the airmedisphere.in domain.
-            from: 'your_email@airmedisphere.in',
+            from: 'akggautam@airmedisphere.in',
             to: [to], // Resend expects an array for 'to'
             subject: subject,
             html: `<p>${message.replace(/\n/g, '<br>')}</p>`, // Convert newlines to <br> for HTML
