@@ -1,0 +1,15 @@
+{
+  "name": "your-email-sender",
+  "version": "1.0.0",
+  "description": "A simple email sender using Resend and Vercel Functions",
+  "main": "api/send-email.js",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "resend": "^3.2.0" // Ensure this line exists and the version is recent
+  }
+}
