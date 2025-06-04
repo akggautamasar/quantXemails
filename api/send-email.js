@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
 
         // Send email using Resend
         const { data, error } = await resend.emails.send({
-            from: 'your_email@airmedisphere.in', // Ensure this email is verified in Resend
+            from: 'akggautam@airmedisphere.in', // Ensure this email is verified in Resend
             to: [to], // Resend expects an array for 'to'
             subject: subject,
             html: `<p>${message.replace(/\n/g, '<br>')}</p>`, // Convert newlines to <br> for HTML
