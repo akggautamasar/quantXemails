@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
     // In production, replace '*' with your Vercel domain (e.g., 'https://your-app.vercel.app')
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // IMPORTANT: Add Authorization header here
 
     // Handle preflight requests (OPTIONS method)
     if (req.method === 'OPTIONS') {
@@ -21,7 +21,26 @@ module.exports = async (req, res) => {
 
     // Wrap the main logic in a try-catch to ensure JSON response for all errors
     try {
-        // Check if RESEND_API_KEY is set
+        // --- Authentication Check ---
+        const INTERNAL_API_KEY = process.env.INTERNAL_EMAIL_API_KEY; // This is your new secret key
+        if (!INTERNAL_API_KEY) {
+            console.error('INTERNAL_EMAIL_API_KEY environment variable is not set.');
+            return res.status(500).json({ message: 'Server configuration error: Internal API key missing.' });
+        }
+
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ message: 'Unauthorized: Missing or invalid Authorization header.' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        if (token !== INTERNAL_API_KEY) {
+            return res.status(403).json({ message: 'Forbidden: Invalid API key.' });
+        }
+        // --- End Authentication Check ---
+
+
+        // Check if RESEND_API_KEY is set (for Resend's actual API call)
         if (!process.env.RESEND_API_KEY) {
             console.error('RESEND_API_KEY environment variable is not set.');
             return res.status(500).json({ message: 'Server configuration error: Resend API key missing.' });
@@ -31,17 +50,14 @@ module.exports = async (req, res) => {
 
         const { to, subject, message } = req.body;
 
-        // Basic validation
+        // Basic validation for email content
         if (!to || !subject || !message) {
             return res.status(400).json({ message: 'Missing required fields: to, subject, or message.' });
         }
 
         // Send email using Resend
         const { data, error } = await resend.emails.send({
-            // UPDATED: Using the provided verified domain.
-            // IMPORTANT: Replace 'your_email' with an actual email address
-            // that you have verified with Resend under the airmedisphere.in domain.
-            from: 'akggautam@airmedisphere.in',
+            from: 'your_email@airmedisphere.in', // Ensure this email is verified in Resend
             to: [to], // Resend expects an array for 'to'
             subject: subject,
             html: `<p>${message.replace(/\n/g, '<br>')}</p>`, // Convert newlines to <br> for HTML
