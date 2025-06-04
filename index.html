@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Email with Resend</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* Rounded corners */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input, textarea {
+            border: 1px solid #d1d5db; /* Light gray border */
+            border-radius: 0.5rem; /* Rounded corners */
+            padding: 0.75rem 1rem;
+            width: 100%;
+            box-sizing: border-box; /* Include padding in width */
+        }
+        button {
+            background-color: #4f46e5; /* Indigo */
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #4338ca; /* Darker indigo on hover */
+        }
+        .message-box {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+        .message-box.success {
+            background-color: #d1fae5; /* Light green */
+            color: #065f46; /* Dark green text */
+        }
+        .message-box.error {
+            background-color: #fee2e2; /* Light red */
+            color: #991b1b; /* Dark red text */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Send Email</h1>
+
+        <form id="emailForm" class="space-y-4">
+            <div>
+                <label for="to" class="block text-gray-700 text-sm font-medium mb-1">Recipient Email:</label>
+                <input type="email" id="to" name="to" placeholder="recipient@example.com" required>
+            </div>
+
+            <div>
+                <label for="subject" class="block text-gray-700 text-sm font-medium mb-1">Subject:</label>
+                <input type="text" id="subject" name="subject" placeholder="Your email subject" required>
+            </div>
+
+            <div>
+                <label for="message" class="block text-gray-700 text-sm font-medium mb-1">Message:</label>
+                <textarea id="message" name="message" rows="6" placeholder="Your email message..." required></textarea>
+            </div>
+
+            <button type="submit" class="w-full">Send Email</button>
+        </form>
+
+        <div id="responseMessage" class="message-box hidden"></div>
+    </div>
+
+    <script>
+        // For Vercel, the function endpoint will be relative to your site's root
+        const VERCEL_FUNCTION_URL = '/api/send-email'; // Points to api/send-email.js
+
+        const emailForm = document.getElementById('emailForm');
+        const responseMessageDiv = document.getElementById('responseMessage');
+
+        emailForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            const to = document.getElementById('to').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+
+            // Clear previous messages and hide
+            responseMessageDiv.classList.add('hidden');
+            responseMessageDiv.textContent = '';
+            responseMessageDiv.classList.remove('success', 'error');
+
+            try {
+                const response = await fetch(VERCEL_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        to: to,
+                        subject: subject,
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    responseMessageDiv.classList.remove('hidden');
+                    responseMessageDiv.classList.add('success');
+                    responseMessageDiv.textContent = 'Email sent successfully! ID: ' + data.id;
+                    emailForm.reset(); // Clear the form
+                } else {
+                    responseMessageDiv.classList.remove('hidden');
+                    responseMessageDiv.classList.add('error');
+                    responseMessageDiv.textContent = 'Failed to send email: ' + (data.message || 'Unknown error');
+                    console.error('Vercel Function Error:', data);
+                }
+            } catch (error) {
+                responseMessageDiv.classList.remove('hidden');
+                responseMessageDiv.classList.add('error');
+                responseMessageDiv.textContent = 'An error occurred: ' + error.message;
+                console.error('Network or Fetch Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
